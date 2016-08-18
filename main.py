@@ -17,6 +17,7 @@ def main(argv):
 
     for docId in range(int(startDocId), int(endDocId)+1):
 
+        print(docId)
         newFileNumber = str(int(int(docId)/100000))
         if fileNumber != newFileNumber:
             fileNumber = newFileNumber
