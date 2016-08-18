@@ -24,4 +24,3 @@ def unfold(sentence):
             result.append(letter)
 
     return "".join(result)
-
