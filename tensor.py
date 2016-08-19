@@ -2,6 +2,17 @@ import re
 import numpy as np
 import korean
 
+_embedim = 98
+_maxlen = 300
+dict = { "ㄱ":0, "ㄲ":1, "ㄴ":2, "ㄷ":3, "ㄸ":4, "ㄹ":5, "ㅁ":6, "ㅂ":7, "ㅃ":8, "ㅅ":9, "ㅆ":10, "ㅇ":11, "ㅈ":12, "ㅉ":13,
+             "ㅊ":14, "ㅋ":15, "ㅌ":16, "ㅍ":17, "ㅎ":18, "ㅏ":19, "ㅐ":20, "ㅑ":21, "ㅒ":22, "ㅓ":23, "ㅔ":24,
+             "ㅕ":25, "ㅖ":26, "ㅗ":27, "ㅘ":28, "ㅙ":29, "ㅚ":30, "ㅛ":31, "ㅜ":32,"ㅝ":33, "ㅞ":34, "ㅟ":35, "ㅠ":36, "ㅡ":37,
+             "ㅢ":38, "ㅣ":39, "ㄳ":40, "ㄵ":41, "ㄶ":42, "ㄺ":43, "ㄻ":44, "ㄼ":45, "ㄽ":46, "ㄾ":47, "ㄿ":48, "ㅀ":49, "ㅄ":50,
+             "a":51, "b":52, "c":53, "d":54, "e":55, "f":56, "g":57, "h":58, "i":59, "j":60, "k":61, "l":62, "m":63, "n":64,
+             "o":65, "p":66, "q":67, "r":68, "s":69, "t":70, "u":71, "v":72, "w":73, "x":74, "y":75, "z":76, "!":77, "\"":78,
+             "?":79, ".":80, ",":81, "-":82, ":":83, "~":84, "%":85, "\'":86, "0":87, "1":88, "2":89, "3":90, "4":91, "5":92,
+             "6":93, "7":94, "8":95, "9":96, " ":97 }
+
 # This function converts sentences into tensors
 # Tensor can express : Korean Alphabet, English Alphabet (lower case), Numbers and punctuation marks
 # Its dimension is 88
@@ -9,34 +20,50 @@ import korean
 def toTensor(sentence):
     # Input : Normal sentence e.g "나는 밥을 먹었다."
     # Output : 88 X 300 tensor
-    embedim = 88
-    max_len = 300
-    dict = { "ㄱ":0, "ㄲ":1, "ㄴ":2, "ㄷ":3, "ㄸ":4, "ㄹ":5, "ㅁ":6, "ㅂ":7, "ㅃ":8, "ㅅ":9, "ㅆ":10, "ㅇ":11, "ㅈ":12, "ㅉ":13,
-             "ㅊ":14, "ㅋ":15, "ㅌ":16, "ㅍ":17, "ㅎ":18, "ㅏ":19, "ㅐ":20, "ㅑ":21, "ㅒ":22, "ㅓ":23, "ㅔ":24,
-             "ㅕ":25, "ㅖ":26, "ㅗ":27, "ㅘ":28, "ㅙ":29, "ㅚ":30, "ㅛ":31, "ㅜ":32,"ㅝ":33, "ㅞ":34, "ㅟ":35, "ㅠ":36, "ㅡ":37,
-             "ㅢ":38, "ㅣ":39, "ㄳ":40, "ㄵ":41, "ㄶ":42, "ㄺ":43, "ㄻ":44, "ㄼ":45, "ㄽ":46, "ㄾ":47, "ㄿ":48, "ㅀ":49, "ㅄ":50,
-             "a":51, "b":52, "c":53, "d":54, "e":55, "f":56, "g":57, "h":58, "i":59, "j":60, "k":61, "l":62, "m":63, "n":64,
-             "o":65, "p":66, "q":67, "r":68, "s":69, "t":70, "u":71, "v":72, "w":73, "x":74, "y":75, "z":76, "!":77, "\"":78,
-             "?":79, ".":80, ",":81, "-":82, ":":83, "~":84, "%":85, "\'":86, " ":87 }
+    embedim = _embedim
+    maxlen = _maxlen
 
     stage_1 = preprocess(sentence)
     stage_2 = korean.unfold(stage_1)
 
-    tindex = [87] * max_len
+    tindex = [97] * maxlen
     for i, letter in enumerate(stage_2) :
         if not letter in dict :
             continue
         else :
             tindex[i] = dict[letter]
 
-    tensor = np.zeros((embedim,max_len))
+    tensor = np.zeros((embedim,maxlen))
     for i in range(len(tindex)):
         tensor[tindex[i]][i] = 1
 
     return tensor
 
+# This function converts tensor into sentenes
+# Input dimension : 88 X 300
+# Output : Corresponding sentence
 def toSentence(tensor):
-    pass
+
+    embedim = _embedim
+    maxlen = _maxlen
+    if tensor.shape != (embedim, maxlen) :
+        print("Tensor dimension doesn't match to" + str(embedim) + "X" + str(maxlen) + ", given :" + str(tensor.shape))
+        return
+
+    inv_dict = {v:k for k,v in dict.items()}
+
+    result = ""
+    # Check the tensor and lookup in the inverted dictionary
+    for i in range(maxlen):
+        tindex = 0
+        for j in range(embedim):
+            if tensor[j][i] != 0 :
+                tindex = j
+                break
+        result += inv_dict[tindex]
+
+    return result
+
 
 # This function preprocesses the sentence
 # 1. It removes the irregular space

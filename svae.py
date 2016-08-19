@@ -5,7 +5,7 @@ Reference: "Auto-Encoding Variational Bayes" https://arxiv.org/abs/1312.6114
 import numpy as np
 import matplotlib.pyplot as plt
 
-from keras.layers import Input, Dense, Lambda
+from keras.layers import Input, Dense, Lambda, LSTM
 from keras.models import Model
 from keras import backend as K
 from keras import objectives
