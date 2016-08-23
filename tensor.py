@@ -15,11 +15,10 @@ dict = { "ㄱ":0, "ㄲ":1, "ㄴ":2, "ㄷ":3, "ㄸ":4, "ㄹ":5, "ㅁ":6, "ㅂ":7,
 
 # This function converts sentences into tensors
 # Tensor can express : Korean Alphabet, English Alphabet (lower case), Numbers and punctuation marks
-# Its dimension is 88
-#
+# Its dimension is 98
 def toTensor(sentence):
     # Input : Normal sentence e.g "나는 밥을 먹었다."
-    # Output : 88 X 300 tensor
+    # Output : 300 X 98 tensor
     embedim = _embedim
     maxlen = _maxlen
 
@@ -33,21 +32,21 @@ def toTensor(sentence):
         else :
             tindex[i] = dict[letter]
 
-    tensor = np.zeros((embedim,maxlen))
+    tensor = np.zeros((maxlen,embedim))
     for i in range(len(tindex)):
-        tensor[tindex[i]][i] = 1
+        tensor[i][tindex[i]] = 1
 
     return tensor
 
 # This function converts tensor into sentenes
-# Input dimension : 88 X 300
+# Input dimension : 300 X 98
 # Output : Corresponding sentence
 def toSentence(tensor):
 
     embedim = _embedim
     maxlen = _maxlen
-    if tensor.shape != (embedim, maxlen) :
-        print("Tensor dimension doesn't match to" + str(embedim) + "X" + str(maxlen) + ", given :" + str(tensor.shape))
+    if tensor.shape != (maxlen, embedim) :
+        print("Tensor dimension doesn't match to (" + str(embedim) + ", " + str(maxlen) + "), given :" + str(tensor.shape))
         return
 
     inv_dict = {v:k for k,v in dict.items()}
@@ -57,12 +56,23 @@ def toSentence(tensor):
     for i in range(maxlen):
         tindex = 0
         for j in range(embedim):
-            if tensor[j][i] != 0 :
+            if tensor[i][j] != 0 :
                 tindex = j
                 break
         result += inv_dict[tindex]
 
     return result
+
+#This function converts .txt data into 3-d tensors
+def toCorpusTensor(file_name):
+
+    f = open("sentence/sentence0.txt", "r", encoding="utf-8")
+
+    tensorList = []
+    for line in f.readlines():
+        tensorList.append(toTensor(line))
+
+    return np.stack(tensorList)
 
 
 # This function preprocesses the sentence
