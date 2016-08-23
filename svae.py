@@ -11,13 +11,6 @@ from keras.models import Model
 from keras import backend as K
 from keras import objectives
 
-'''
-import theano
-
-
-theano.config.exception_verbosity='high'
-theano.config.optimizer='fast_compile'
-'''
 
 batch_size = 20
 embedim = 98
@@ -40,27 +33,27 @@ def sampling(args):
     return z_mean + K.exp(z_log_var / 2) * epsilon
 
 # note that "output_shape" isn't necessary with the TensorFlow backend
-z = Lambda(sampling, output_shape=(latentDim,))([z_mean, z_log_var])
+z = Lambda(sampling)([z_mean, z_log_var])
 
 # we instantiate these layers separately so as to reuse them later
 decoded_mean = RepeatVector(maxlen)(z)
 d3 = LSTM(embedim, activation='relu', return_sequences=True)(decoded_mean)
 #d2 = LSTM(rnnDim, activation='relu', return_sequences=True)(d3)
 #d1 = LSTM(embedim, activation='relu', return_sequences=True)(d2)
-output = Activation('softmax',d3)
+output = d3
 
 def vae_loss(x, x_decoded_mean):
-    xent_loss = embedim * objectives.binary_crossentropy(x, x_decoded_mean)
+    xent_loss = embedim * K.sum(objectives.binary_crossentropy(x, x_decoded_mean), axis=-1)
     kl_loss = - 0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
     return xent_loss + kl_loss
 
 vae = Model(x, output)
+
 print(vae.summary())
+
 vae.compile(optimizer='rmsprop', loss=vae_loss)
 
 train = tensor.toCorpusTensor("sentence/sentence0.txt")
-
-print(train.shape)
 
 vae.fit(train, train,
         shuffle=True,
